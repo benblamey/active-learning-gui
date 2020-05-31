@@ -3,7 +3,7 @@
 
 # # Vilar_Oscillator
 
-# In[4]:
+# In[1]:
 
 
 import numpy as np
@@ -12,7 +12,7 @@ from gillespy2.core import Model, Species, Reaction, Parameter, RateRule, Assign
 from gillespy2.core.events import EventAssignment, EventTrigger, Event
 
 
-# In[5]:
+# In[2]:
 
 
 class Vilar_Oscillator(Model):
@@ -72,13 +72,13 @@ class Vilar_Oscillator(Model):
         self.timespan(np.linspace(0, 200, 201))
 
 
-# In[6]:
+# In[3]:
 
 
 model = Vilar_Oscillator()
 
 
-# In[7]:
+# In[4]:
 
 
 #from dask.utils import ensure_dict, format_bytes
@@ -87,7 +87,7 @@ print(dask.__version__)
 # fcn_list = [o[0] for o in getmembers(sys.modules[__name__], isfunction)]
 
 
-# In[8]:
+# In[5]:
 
 
 from tsfresh.feature_extraction.settings import MinimalFCParameters
@@ -99,7 +99,7 @@ from sklearn.metrics import mean_absolute_error
 #from dask.distributed import Client
 
 
-# In[9]:
+# In[6]:
 
 
 # Define simulator function
@@ -126,7 +126,7 @@ def simulator2(x):
     return simulator(x, model=model)
 
 
-# In[10]:
+# In[7]:
 
 
 # Set up the prior
@@ -145,7 +145,7 @@ dmax = bound * 2.0
 uni_prior = uniform_prior.UniformPrior(dmin, dmax)
 
 
-# In[11]:
+# In[8]:
 
 
 # generate some fixed(observed) data based on default parameters of the model
@@ -153,7 +153,7 @@ uni_prior = uniform_prior.UniformPrior(dmin, dmax)
 fixed_data = model.run(show_labels=False, number_of_trajectories=100, seed=None)
 
 
-# In[12]:
+# In[9]:
 
 
 # Reshape the dat to (n_points,n_species,n_timepoints) and remove timepoints array
@@ -161,7 +161,7 @@ fixed_data = np.asarray([x.T for x in fixed_data])
 fixed_data = fixed_data[:,1:, :]
 
 
-# In[13]:
+# In[10]:
 
 
 # Function to generate summary statistics
@@ -174,34 +174,34 @@ ns = naive_squared.NaiveSquaredDistance()
 abc = ABC(fixed_data, sim=simulator2, prior_function=uni_prior, summaries_function=summ_func.compute, distance_function=ns)
 
 
-# In[14]:
+# In[11]:
 
 
 # c = Client()
 # c
 
 
-# In[15]:
+# In[12]:
 
 
 # First compute the fixed(observed) mean
 # abc.compute_fixed_mean(chunk_size=2)
 
 
-# In[16]:
+# In[13]:
 
 
 # Run in multiprocessing mode
 # res = abc.infer(num_samples=10, batch_size=10, chunk_size=2)
 
 
-# In[17]:
+# In[14]:
 
 
 # mae_inference = mean_absolute_error(bound, abc.results["inferred_parameters"])
 
 
-# In[18]:
+# In[15]:
 
 
 fixed_data[0]
@@ -210,33 +210,55 @@ fixed_data.shape
 # > 100 trajectories, 9 species, 201 time points
 
 
-# In[19]:
+# In[16]:
 
 
 labels = np.zeros(fixed_data.shape[0])-1
 
 
-# In[20]:
+# In[17]:
 
 
 labels
 
 
-# In[1]:
+# In[18]:
+
+
+
+# As a user of the notebook, your API looks something like this:
+
+
+i = 0
+def get_id():
+    # The ID (index) of the next plot to show to the user.
+    # (TODO: this needs to be more like.. "whats the next one after ID X?" or "whats the next one without a label? 
+    # -- this precludes pre-fetching
+    global i
+    i = i + 1
+    return i
+
+
+
+def on_new_label(id, label):
+    # callback invoked when the user labels a plot.
+    labels[id] = label
+    print(f"timeseries {id} has label {label}")
+    
+    
+    
+    
+
+
+# In[19]:
 
 
 import json
 
-i = 0
-def get_id():
-    global i
-    # just a dumb increment for now. This breaks REST, GETs need to have no side effects.
-    # e.g. return next ID on post, then use get to get data only? 
-    i = i + 1
-    return i
+
 
 def do_get(handler):
-    print(handler.path)
+    #print(handler.path)
     if handler.path == '/':    
         # Construct a server response.
         handler.send_response(200)
@@ -252,8 +274,10 @@ def do_get(handler):
         handler.send_response(200)
         handler.send_header('Content-type', 'application/json')
         handler.end_headers()
+        # just a dumb increment for now. This breaks REST, GETs need to have no side effects.
+        # e.g. return next ID on post, then use get to get data only? 
         time_series_to_get = get_id()
-        print(f'getting {time_series_to_get}')
+        #print(f'getting {time_series_to_get}')
         handler.wfile.write(bytes(json.dumps(
             {'id': time_series_to_get,
              'data':fixed_data[time_series_to_get].tolist()}), 
@@ -266,16 +290,15 @@ def do_get(handler):
     return
 
 
-# In[25]:
+# In[20]:
 
 
 
 
 def do_post(handler):
-    print(handler.path)
+    #
     # should be /label/42
     if handler.path == '/label':  
-        print('foo')
         # Construct a server response.
         #print(handler.headers)
         #print(handler.headers['Content-type'])
@@ -284,11 +307,10 @@ def do_post(handler):
 
 
         data = handler.rfile.readline()
-        print(data)
+        #print(data)
         data = json.loads(data.decode('utf-8'))
-        print(data)
-        labels[data['id']] = data['label']
-        print(f"timeseries {data['id']} has label {data['label']}")
+        #print(data)
+        on_new_label(data['id'], data['label'])
         
         handler.send_response(200)
         handler.send_header('Content-type', 'text/html')
@@ -299,16 +321,17 @@ def do_post(handler):
         handler.send_header('Content-type', 'text/html')
         handler.end_headers()
         handler.wfile.write(b"404 not found")    
+        print(f'404 - {handler.path}')
     return
 
 
-# In[27]:
+# In[23]:
 
 
 print(labels)
 
 
-# In[3]:
+# In[22]:
 
 
 import http.server
@@ -328,10 +351,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         eval('do_post')(self)
 
+    
 def foo():
     global httpd
-    print('Server listening on port 8000...')
-    httpd = socketserver.TCPServer(('', 8007), Handler)
+    port = 8001
+    print(f'Server listening on port {port}...')
+    httpd = socketserver.TCPServer(('', port), Handler)
     httpd.serve_forever()
 
 t= threading.Thread(target=foo)

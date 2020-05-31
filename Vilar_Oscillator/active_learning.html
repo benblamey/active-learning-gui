@@ -27,8 +27,15 @@
 
 <body>
 
-<div id="my_dataviz" align="center">
+<!-- todo put ID here to see -->
+<div id="title" align="center">
+
 </div>
+
+<div id="my_dataviz" align="center">
+
+</div>
+
 
 <div id="bottom-buttons">
     <div align="center">
@@ -102,24 +109,24 @@
 
     data = undefined;
 
+    function get() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                data = JSON.parse(this.responseText);
+                // document.getElementById("demo").innerHTML = this.responseText;
+                console.log(data);
+                // just plot the first species as a PoC..
+                plot_data(data.data[0])
+
+            }
+        };
+        // true -> async
+        xhttp.open("GET", "/next_data", true);
+        xhttp.send();
+    }
+
     post_and_get = function (label) {
-        function get() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    data = JSON.parse(this.responseText);
-                    // document.getElementById("demo").innerHTML = this.responseText;
-                    console.log(data);
-                    // just plot the first species as a PoC..
-                    plot_data(data.data[0])
-
-                }
-            };
-            // true -> async
-            xhttp.open("GET", "/next_data", true);
-            xhttp.send();
-        }
-
         if (!data) {
             get()
         } else {
@@ -210,6 +217,7 @@
     //     plot_data)
 
     // plot_data(data)
+    get()
 
 </script>
 
