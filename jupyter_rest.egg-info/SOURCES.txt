@@ -1,0 +1,5 @@
+setup.py
+jupyter_rest.egg-info/PKG-INFO
+jupyter_rest.egg-info/SOURCES.txt
+jupyter_rest.egg-info/dependency_links.txt
+jupyter_rest.egg-info/top_level.txt

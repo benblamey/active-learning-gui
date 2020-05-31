@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Active Learning</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <style>
+        body {
+            height: 100%;
+        }
+
+        #my_dataviz {
+            height: 100%;
+            width: 100%;
+        }
+
+        #bottom-buttons {
+            width: 100%;
+        }
+
+        .feedback-buttons {
+            font-size: 5em;
+        }
+    </style>
+</head>
+
+
+<body>
+
+<div id="my_dataviz" align="center">
+</div>
+
+<div id="bottom-buttons">
+    <div align="center">
+        <button id="happy" onclick="plot_data([3,4,5,5,6,77,8,8,9])" class="feedback-buttons">&#x1F600;</button>
+        <button id="sad" onclick="plot_data([12,3,4,4,4,5,7,6,54,3])" class="feedback-buttons">&#x1F626;</button>
+    </div>
+</div>
+
+
+<script>
+    data = [2,1,2,3,4,5];
+
+    // This does a bar chart
+    // div = d3.select("#plot");
+    //
+    //
+    // div.selectAll("div")
+    //     .data(data)
+    //     .join("div")
+    //     .style("background", "steelblue")
+    //     .style("padding", "3px")
+    //     .style("margin", "1px")
+    //     .style("width", d => `${d * 10}px`)
+    //     .text(d => d);
+
+
+
+    // set the dimensions and margins of the graph
+    var margin = {top: 10, right: 30, bottom: 30, left: 60},
+        width = 800 - margin.left - margin.right,
+        height = 600 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    var svg = d3.select("#my_dataviz")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+
+    // plot_data = function(data) {
+    //     // Add X axis --> it is a date format
+    //     var x = d3.scaleTime()
+    //         .domain(d3.extent(data, function(d) { return d.date; }))
+    //         .range([ 0, width ]);
+    //     svg.append("g")
+    //         .attr("transform", "translate(0," + height + ")")
+    //         .call(d3.axisBottom(x));
+    //
+    //     // Add Y axis
+    //     var y = d3.scaleLinear()
+    //         .domain([0, d3.max(data, function(d) { return +d.value; })])
+    //         .range([ height, 0 ]);
+    //     svg.append("g")
+    //         .call(d3.axisLeft(y));
+    //
+    //     // Add the line
+    //     svg.append("path")
+    //         .datum(data)
+    //         .attr("fill", "none")
+    //         .attr("stroke", "steelblue")
+    //         .attr("stroke-width", 1.5)
+    //         .attr("d", d3.line()
+    //             .x(function(d) { return x(d.date) })
+    //             .y(function(d) { return y(d.value) })
+    //         )
+    // };
+
+    plot_data = function(data) {
+        d3.select("#theline").remove();
+
+        // Add X axis --> it is a date format
+        var x = d3.scaleLinear()
+            .domain([0,10])
+            // .domain(d3.extent(data, function(d) { return d.date; }))
+            .range([ 0, width ]);
+
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+        // Add Y axis
+        var y = d3.scaleLinear()
+             // unary plus -- attempts to convert the operand to a number, if it isn't already
+            // .domain([0, d3.max(data, function(d) { return +d; })])
+            .domain([0,10])
+            .range([ height, 0 ]);
+
+        svg.append("g")
+            .call(d3.axisLeft(y));
+
+        i = 0;
+
+        // Add the line
+        svg.append("path")
+            .datum(data)
+            .attr("id", "theline")
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.line()
+                .x(function(d) {
+                    return x(++i);
+                })
+                .y(function(d) {
+                    return y(d);
+                    // return y(d)
+                })
+            )
+    };
+
+
+    // //Read the data
+    // d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
+    //
+    //     // When reading the csv, I must format variables:
+    //     function(d){
+    //         return { date : d3.timeParse("%Y-%m-%d")(d.date), value : d.value }
+    //     },
+    //
+    //     // Now I can use this dataset:
+    //     plot_data)
+
+    plot_data(data)
+
+</script>
+
+</body>
+</html>
