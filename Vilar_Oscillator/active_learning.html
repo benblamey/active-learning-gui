@@ -101,25 +101,33 @@
 
     plot_data = function(data) {
         d3.select("#theline").remove();
+        d3.select("#they").remove();
+        d3.select("#thex").remove();
 
         // Add X axis --> it is a date format
         var x = d3.scaleLinear()
-            .domain([0,10])
+            // .domain(0, data.length)
+            .domain([0, data.length])
             // .domain(d3.extent(data, function(d) { return d.date; }))
             .range([ 0, width ]);
 
         svg.append("g")
             .attr("transform", "translate(0," + height + ")")
+            .attr("id", "thex")
             .call(d3.axisBottom(x));
 
         // Add Y axis
         var y = d3.scaleLinear()
+                // .domain([d3.min(data),d3.max(data)])
              // unary plus -- attempts to convert the operand to a number, if it isn't already
             // .domain([0, d3.max(data, function(d) { return +d; })])
-            .domain([0,10])
+            .domain([0,
+                d3.max(data, function(d) { return +d; })
+            ])
             .range([ height, 0 ]);
 
         svg.append("g")
+            .attr("id", "they")
             .call(d3.axisLeft(y));
 
         i = 0;
