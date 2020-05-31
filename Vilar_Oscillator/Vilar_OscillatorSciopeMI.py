@@ -266,7 +266,7 @@ def do_get(handler):
     return
 
 
-# In[22]:
+# In[25]:
 
 
 
@@ -288,7 +288,7 @@ def do_post(handler):
         data = json.loads(data.decode('utf-8'))
         print(data)
         labels[data['id']] = data['label']
-        print(f'timeseries {data['label']} has label {data.label}')
+        print(f"timeseries {data['id']} has label {data['label']}")
         
         handler.send_response(200)
         handler.send_header('Content-type', 'text/html')
@@ -302,10 +302,10 @@ def do_post(handler):
     return
 
 
-# In[ ]:
+# In[27]:
 
 
-
+print(labels)
 
 
 # In[3]:
