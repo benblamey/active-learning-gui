@@ -32,14 +32,16 @@
 
 <div id="bottom-buttons">
     <div align="center">
-        <button id="happy" onclick="plot_data([3,4,5,5,6,77,8,8,9])" class="feedback-buttons">&#x1F600;</button>
-        <button id="sad" onclick="plot_data([12,3,4,4,4,5,7,6,54,3])" class="feedback-buttons">&#x1F626;</button>
+
+        <!-- plot_data([3,4,5,5,6,77,8,8,9]) -->
+        <button id="happy" onclick="post_and_get(1)" class="feedback-buttons">&#x1F600;</button>
+        <button id="sad" onclick="post_and_get(2)" class="feedback-buttons">&#x1F626;</button>
     </div>
 </div>
 
 
 <script>
-    data = [2,1,2,3,4,5];
+    data = [2, 1, 2, 3, 4, 5];
 
     // This does a bar chart
     // div = d3.select("#plot");
@@ -53,7 +55,6 @@
     //     .style("margin", "1px")
     //     .style("width", d => `${d * 10}px`)
     //     .text(d => d);
-
 
 
     // set the dimensions and margins of the graph
@@ -99,17 +100,61 @@
     //         )
     // };
 
-    plot_data = function(data) {
+    data = undefined;
+
+    post_and_get = function (label) {
+        function get() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    data = JSON.parse(this.responseText);
+                    // document.getElementById("demo").innerHTML = this.responseText;
+                    console.log(data);
+                    // just plot the first species as a PoC..
+                    plot_data(data.data[0])
+
+                }
+            };
+            // true -> async
+            xhttp.open("GET", "/next_data", true);
+            xhttp.send();
+        }
+
+        if (!data) {
+            get()
+        } else {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log('posted, now getting...');
+                    get()
+                }
+            };
+
+            // true -> async
+            xhttp.open("POST", "/label", true);
+            xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+            data_to_post = JSON.stringify({"id": data.id, "label": label }) + '\n'
+            console.log(data_to_post);
+            xhttp.send(data_to_post);
+        }
+
+
+    };
+
+
+    plot_data = function (data) {
         d3.select("#theline").remove();
         d3.select("#they").remove();
         d3.select("#thex").remove();
 
         // Add X axis --> it is a date format
         var x = d3.scaleLinear()
-            // .domain(0, data.length)
+        // .domain(0, data.length)
             .domain([0, data.length])
             // .domain(d3.extent(data, function(d) { return d.date; }))
-            .range([ 0, width ]);
+            .range([0, width]);
 
         svg.append("g")
             .attr("transform", "translate(0," + height + ")")
@@ -118,13 +163,15 @@
 
         // Add Y axis
         var y = d3.scaleLinear()
-                // .domain([d3.min(data),d3.max(data)])
-             // unary plus -- attempts to convert the operand to a number, if it isn't already
-            // .domain([0, d3.max(data, function(d) { return +d; })])
+        // .domain([d3.min(data),d3.max(data)])
+        // unary plus -- attempts to convert the operand to a number, if it isn't already
+        // .domain([0, d3.max(data, function(d) { return +d; })])
             .domain([0,
-                d3.max(data, function(d) { return +d; })
+                d3.max(data, function (d) {
+                    return +d;
+                })
             ])
-            .range([ height, 0 ]);
+            .range([height, 0]);
 
         svg.append("g")
             .attr("id", "they")
@@ -140,10 +187,10 @@
             .attr("stroke", "steelblue")
             .attr("stroke-width", 1.5)
             .attr("d", d3.line()
-                .x(function(d) {
+                .x(function (d) {
                     return x(++i);
                 })
-                .y(function(d) {
+                .y(function (d) {
                     return y(d);
                     // return y(d)
                 })
@@ -162,7 +209,7 @@
     //     // Now I can use this dataset:
     //     plot_data)
 
-    plot_data(data)
+    // plot_data(data)
 
 </script>
 
