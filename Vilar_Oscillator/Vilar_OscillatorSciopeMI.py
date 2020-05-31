@@ -210,10 +210,13 @@ fixed_data.shape
 # > 100 trajectories, 9 species, 201 time points
 
 
-# In[16]:
+# In[26]:
 
 
-labels = np.zeros(fixed_data.shape[0])-1
+labels = -np.ones(fixed_data.shape[0])
+# -1 = no label.
+# 1 = :-)
+# 2 = :-(
 
 
 # In[17]:
@@ -242,12 +245,19 @@ def get_id():
 
 def on_new_label(id, label):
     # callback invoked when the user labels a plot.
+    # needs to return 'quickly' to complete the browser request.
     labels[id] = label
     print(f"timeseries {id} has label {label}")
     
     
     
     
+
+
+# In[25]:
+
+
+print(labels)
 
 
 # In[19]:
@@ -323,12 +333,6 @@ def do_post(handler):
         handler.wfile.write(b"404 not found")    
         print(f'404 - {handler.path}')
     return
-
-
-# In[23]:
-
-
-print(labels)
 
 
 # In[22]:
